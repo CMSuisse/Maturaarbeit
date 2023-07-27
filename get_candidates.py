@@ -21,7 +21,6 @@ def main():
         catalog_df = pd.read_csv(catalog)
         # Automatically exclude some entries before the user inputs are filtered
         catalog_df = exclude_insufficient_entries(catalog_df)
-        catalog_df = exclude_permanent_invisible(catalog_df)
         catalog_df = filter_dataframe(catalog_df)
         catalog_df.to_csv('candidates.csv', index=False)
 
@@ -33,14 +32,6 @@ def exclude_insufficient_entries(catalog_df):
             print("Removing index {} due to invalid period".format(index))
             # Remove this entry from the dataframe
             catalog_df = catalog_df.drop(index=index, axis=0)  
-    return catalog_df
-
-# Exclude entries with a declination of -40° or lower, as they won't ever be visible from Glarus
-def exclude_permanent_invisible(catalog_df):
-    for index, row in catalog_df.iterrows():
-        if row["DE-"] == "-" and row["DEd"] >= 40:
-            print("Removing index {} due to being permanently invisible".format(index))
-            catalog_df = catalog_df.drop(index=index, axis=0)
     return catalog_df
 
 # Use the filter constraints defined at the start of the file to filter through the dataframe
