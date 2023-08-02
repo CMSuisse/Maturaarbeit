@@ -8,9 +8,9 @@ import pandas as pd
 
 # Define rough filter values
 MIN_DECLINATION_VALUE_DEG = -40
-MIN_RA_VALUE_H = 0
-MAX_RA_VALUE_H = 23
-MIN_PERIOD_VALUE = 0.0
+# Representing RA values using base 10 is (of course) a sin, BUT determining if one is bigger than the other is still possible
+MIN_RA_VALUE = 000000.0
+MAX_RA_VALUE = 235959.9
 MAX_PERIOD_VALUE = 5.0
 MIN_BRIGHTNESS = 8.0
 
@@ -39,16 +39,19 @@ def filter_dataframe(catalog_df):
     for index, row in catalog_df.iterrows():
         # Check every entry for declination, min_ra, max_ra, min_period, max_period and min_brightness
         # Connect the sign and value for the declination degree value to make comparing it easier
-        row_declination_value_deg = int((row["DE-"] + str(row["DEd"])))
+        row_declination_value_deg = int(row["DE-"] + str(row["DEd"]))
+        # Convert the RA values of the row into one value that can be compared with the RA_VALUES defined at the top of the file
+        row_ra_value = row["RAh"]*10000 + row["RAm"]*100 + row["RAs"]
+        print(row_ra_value)
         if row_declination_value_deg < MIN_DECLINATION_VALUE_DEG:
             print("Removing index {} due to constraint declination".format(index))
             catalog_df = catalog_df.drop(index=index, axis=0)
         # Check right ascension
-        elif row["RAh"] < MIN_RA_VALUE_H or row["RAh"] > MAX_RA_VALUE_H:
+        elif row_ra_value < MIN_RA_VALUE or row_ra_value > MAX_RA_VALUE:
             print("Removing index {} due to constraint right ascension".format(index))
-            catalog_df = catalog_df.drop(index=index, axis=0)
+            catalog_df = catalog_df.drop(index=index, axis=0) 
         # Check period
-        elif row["Period [d]"] < MIN_PERIOD_VALUE or row["Period [d]"] > MAX_PERIOD_VALUE:
+        elif row["Period [d]"] > MAX_PERIOD_VALUE:
             print("Removing index {} due to constraint period".format(index))
             catalog_df = catalog_df.drop(index=index, axis=0)
         # Check brightness
