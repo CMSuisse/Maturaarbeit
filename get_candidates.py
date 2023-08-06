@@ -7,11 +7,12 @@
 import pandas as pd
 
 # Define rough filter values
-MIN_DECLINATION_VALUE_DEG = -40
+MIN_DECLINATION_VALUE_DEG = -10
+MAX_DECLINATION_VALUE_DEG = 10
 # Representing RA values using base 10 is (of course) a sin, BUT determining if one is bigger than the other is still possible
-MIN_RA_VALUE = 000000.0
-MAX_RA_VALUE = 235959.9
-MAX_PERIOD_VALUE = 5.0
+MIN_RA_VALUE = 160000.0
+MAX_RA_VALUE = 230000.0
+MAX_PERIOD_VALUE = 15.0
 MIN_BRIGHTNESS = 8.0
 
 
@@ -43,7 +44,7 @@ def filter_dataframe(catalog_df):
         # Convert the RA values of the row into one value that can be compared with the RA_VALUES defined at the top of the file
         row_ra_value = row["RAh"]*10000 + row["RAm"]*100 + row["RAs"]
         print(row_ra_value)
-        if row_declination_value_deg < MIN_DECLINATION_VALUE_DEG:
+        if row_declination_value_deg <= MIN_DECLINATION_VALUE_DEG or row_declination_value_deg >= MAX_DECLINATION_VALUE_DEG:
             print("Removing index {} due to constraint declination".format(index))
             catalog_df = catalog_df.drop(index=index, axis=0)
         # Check right ascension
