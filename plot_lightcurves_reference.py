@@ -3,16 +3,22 @@ import numpy as np
 from os import path
 import csv
 
+JULIAN_DATE_PREFIX = 0
+
 def plot_lightcurve(file_path):
-    with open("lightcurves/{}.csv".format(file_path), encoding="UTF-8-sig") as file:
+    global JULIAN_DATE_PREFIX
+    with open("lightcurves/ref_stars/auto_aperture/{}".format(file_path), encoding="UTF-8-sig") as file:
         file_reader = csv.reader(file)
         # Extract the values from the .csv files
         JULIAN_DATES = []
         RELMAGS = []
-        for julian_date, relmag in file_reader:
-            # Subtract 2460180 from every julian date as this prefix is the same for every value
-            JULIAN_DATES.append(float(julian_date) - 2460180)
-            RELMAGS.append(float(relmag))
+        for i, entry in enumerate(file_reader):
+            # Determine the julian date prefix with the first entry
+            if i == 0:
+                JULIAN_DATE_PREFIX = int(entry[0].split(".")[0])
+            # Subtract the julian date prefix from every julian date as this prefix is the same for every value in the csv
+            JULIAN_DATES.append(float(entry[0]) - JULIAN_DATE_PREFIX)
+            RELMAGS.append(float(entry[1]))
         
         file.close()
 
@@ -24,12 +30,11 @@ def plot_lightcurve(file_path):
 
     # Plot the values as well as median and average values in a scatter plot with connecting lines
     fig, ax = plt.subplots()
-    ax.set_title("Unadjusted lightcurve of file {}".format(file_path))
-
-    ax.set_xlabel("Julian Date (2460180+)")
+    ax.set_title("Unadjusted lightcurve for sequence {}".format(file_path))
+    ax.set_xlabel("Julian Date ({}+)".format(JULIAN_DATE_PREFIX))
     ax.set_ylabel("Relative magnitude")
 
-    ax.plot(JULIAN_DATES, RELMAGS, ":o")
+    ax.plot(JULIAN_DATES, RELMAGS, "o")
     ax.axhline(RELMAG_MEDIAN, linestyle = "--", color = "green")
     ax.axhline(RELMAG_AVERAGE, linestyle = ":", color = "green")
 
@@ -43,30 +48,28 @@ def plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file
 
     # Plot the values again, this time only show the median
     fig, ax = plt.subplots()
-    ax.set_title("Adjusted lightcurve of file {}".format(file_path))
+    ax.set_title("Adjusted lightcurve for sequence {}".format(file_path))
 
-    ax.set_xlabel("Julian Date (2460180+)")
+    ax.set_xlabel("Julian Date ({}+)".format(JULIAN_DATE_PREFIX))
     ax.set_ylabel("Apparent magnitude")
 
-    ax.plot(JULIAN_DATES, MAGS, ":o")
+    ax.plot(JULIAN_DATES, MAGS, "o")
     ax.axhline(np.median(MAGS), linestyle = "--", color = "green")
-    print("Conversion coefficient was {}.".format(COEFF))
+    print("Conversion coefficient was {}".format(COEFF))
     
 
 def main():
     # Let the user decide which file to plot
-    file_path = input("Specify the name of the lightcurve to be analyzed (path will be: lightcurves/[INPUT].csv): ")
+    file_path = input("Specify the name of the lightcurve to be analyzed (path will be: lightcurves/ref_stars/auto_aperture/[INPUT]): ")
     # Allow the user to enter the actual magnitude of the star if it is a refernce star
-    truemag = input("Magnitude the star actually has (press ENTER if not reference star): ")
-    if not truemag == "":
-        truemag = float(truemag)
+    truemag = input("Magnitude the star actually has: ")
+    truemag = float(truemag)
 
     try:
         # Check if file exists
-        assert path.isfile("lightcurves/{}.csv".format(file_path))
+        assert path.isfile("lightcurves/ref_stars/auto_aperture/{}".format(file_path))
         JULIAN_DATES, RELMAGS, RELMAG_MEDIAN = plot_lightcurve(file_path)
-        if not truemag == "":
-            plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file_path)
+        plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file_path)
 
         plt.show()
     
