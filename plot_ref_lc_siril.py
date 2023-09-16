@@ -5,9 +5,9 @@ import csv
 
 JULIAN_DATE_PREFIX = 0
 
-def plot_lightcurve(file_path):
+def plot_lightcurve(file_name):
     global JULIAN_DATE_PREFIX
-    with open("lightcurves/ref_stars/auto_aperture/{}".format(file_path), encoding="UTF-8-sig") as file:
+    with open("lightcurves/ref_stars/auto_aperture/{}".format(file_name), encoding="UTF-8-sig") as file:
         file_reader = csv.reader(file)
         # Extract the values from the .csv files
         JULIAN_DATES = []
@@ -30,7 +30,7 @@ def plot_lightcurve(file_path):
 
     # Plot the values as well as median and average values in a scatter plot with connecting lines
     fig, ax = plt.subplots()
-    ax.set_title("Unadjusted lightcurve for sequence {}".format(file_path))
+    ax.set_title("Unadjusted lightcurve for sequence {}".format(file_name))
     ax.set_xlabel("Julian Date ({}+)".format(JULIAN_DATE_PREFIX))
     ax.set_ylabel("Relative magnitude")
 
@@ -41,14 +41,14 @@ def plot_lightcurve(file_path):
     # Coefficient calculations are done only on the median, hence the average is not returned
     return JULIAN_DATES, RELMAGS, RELMAG_MEDIAN
     
-def plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file_path):
+def plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file_name):
     # Convert all the relative magnitudes to apparent magnitudes
     COEFF = truemag/RELMAG_MEDIAN
     MAGS = list(map(lambda x: COEFF*x, RELMAGS))
 
     # Plot the values again, this time only show the median
     fig, ax = plt.subplots()
-    ax.set_title("Adjusted lightcurve for sequence {}".format(file_path))
+    ax.set_title("Adjusted lightcurve for sequence {}".format(file_name))
 
     ax.set_xlabel("Julian Date ({}+)".format(JULIAN_DATE_PREFIX))
     ax.set_ylabel("Apparent magnitude")
@@ -60,16 +60,16 @@ def plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file
 
 def main():
     # Let the user decide which file to plot
-    file_path = input("Specify the name of the lightcurve to be analyzed (path will be: lightcurves/ref_stars/auto_aperture/[INPUT]): ")
-    # Allow the user to enter the actual magnitude of the star if it is a refernce star
+    file_name = input("Specify the name of the lightcurve to be analyzed (path will be: lightcurves/ref_stars/auto_aperture/[INPUT]): ")
+    # Allow the user to enter the actual magnitude of the star to calculate the conversion coefficient
     truemag = input("Magnitude the star actually has: ")
     truemag = float(truemag)
 
     try:
         # Check if file exists
-        assert path.isfile("lightcurves/ref_stars/auto_aperture/{}".format(file_path))
-        JULIAN_DATES, RELMAGS, RELMAG_MEDIAN = plot_lightcurve(file_path)
-        plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file_path)
+        assert path.isfile("lightcurves/ref_stars/auto_aperture/{}".format(file_name))
+        JULIAN_DATES, RELMAGS, RELMAG_MEDIAN = plot_lightcurve(file_name)
+        plot_adjusted_lightcurve(truemag, RELMAG_MEDIAN, JULIAN_DATES, RELMAGS, file_name)
 
         plt.show()
     
