@@ -45,10 +45,8 @@ def calculate_flux(file_name):
     return JULIAN_DATES, FLUX_PER_SECOND, FLUX_PER_SECOND_RAW
 
 def plot_magnitude_lightcurve(JULIAN_DATES, FLUX_PER_SECOND, file_name):
-    # For every value, apply the fitted formula to get from flux per second to the conversion coefficient
-    COEFFICIENTS = list(map(lambda flux_value: 2150.1*flux_value**-1.485, FLUX_PER_SECOND))
     # Then use the coefficients to get from flux to mag
-    MAGS = list(map(lambda flux_value, coeff: flux_value*coeff, FLUX_PER_SECOND, COEFFICIENTS))
+    MAGS = list(map(lambda flux_value: -2.5*np.log10(flux_value/16468819), FLUX_PER_SECOND))
     # Then plot the lightcurve
     fig, ax = plt.subplots()
     ax.set_title("Magnitude LC for sequence {}".format(file_name))
@@ -60,6 +58,7 @@ def plot_magnitude_lightcurve(JULIAN_DATES, FLUX_PER_SECOND, file_name):
     ax.plot(JULIAN_DATES, MAGS, "o")
     # Also plot the moving average to make the diagram more readable
     SMOOTHED_MAGS = moving_average(MAGS)
+    print(np.median(SMOOTHED_MAGS))
     ax.plot(JULIAN_DATES, SMOOTHED_MAGS)
     ax.invert_yaxis()
     # Safe the figure in the correct folder and with a figure size that doesn't save a potato quality image
@@ -67,10 +66,9 @@ def plot_magnitude_lightcurve(JULIAN_DATES, FLUX_PER_SECOND, file_name):
     return MAGS, SMOOTHED_MAGS
 
 def plot_raw_magnitude_lightcurve(JULIAN_DATES, FLUX_PER_SECOND_RAW, file_name):
-    # For every value, apply the fitted formula to get from flux per second to the conversion coefficient
-    COEFFICIENTS = list(map(lambda flux_value: 2150.1*flux_value**-1.485, FLUX_PER_SECOND_RAW))
     # Then use the coefficients to get from flux to mag
-    MAGS = list(map(lambda flux_value, coeff: flux_value*coeff, FLUX_PER_SECOND_RAW, COEFFICIENTS))
+    MAGS = list(map(lambda flux_value: -2.5*np.log10(flux_value/16468819), FLUX_PER_SECOND_RAW))
+
     # Then plot the lightcurve
     fig, ax = plt.subplots()
     ax.set_title("Raw magnitude LC for sequence {}".format(file_name))
@@ -89,12 +87,16 @@ def plot_raw_magnitude_lightcurve(JULIAN_DATES, FLUX_PER_SECOND_RAW, file_name):
 
 
 def print_stats(MAGS, SMOOTHED_MAGS):
+    DEVS_FROM_MEAN = MAGS - SMOOTHED_MAGS
     print("========== MAG stats ==========")
     print("Max value: {}mag".format(max(MAGS)))
     print("Min value: {}mag".format(min(MAGS)))
     print("========== SMOOTHED_MAG stats ==========")
     print("Max value: {}mag".format(max(SMOOTHED_MAGS)))
     print("Min value: {}mag".format(min(SMOOTHED_MAGS)))
+    print("========== DEVIATION STATS ==========")
+    print("Average deviation: {}mag".format(np.average(DEVS_FROM_MEAN)))
+    print("Standard deviation: {}mag".format(np.std(DEVS_FROM_MEAN)))
 
 def moving_average(array):
     window = np.ones(int(MOVING_AVERAGE_WINDOW_SIZE))/float(MOVING_AVERAGE_WINDOW_SIZE)
